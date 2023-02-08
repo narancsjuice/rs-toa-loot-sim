@@ -19,11 +19,11 @@ class RewardChest:
         """
         RewardChest class constructor to initialize object.
         """
-        self.raid_lvl = input("Raid level (0-600): ")
-        self.wtp_invoc = input("Walk The Path? (yes, no): ")
-        self.path_invoc = input("Path invocations (pathseeker, pathfinder, pathmaster): ")
-        self.team_size = input("Team size? (1-8)")
-        self.runs = input("Number of runs to simulate? ")
+        #self.raid_lvl = input("Raid level (0-600): ")
+        #self.wtp_invoc = input("Walk The Path? (yes, no): ")
+        #self.path_invoc = input("Path invocations (pathseeker, pathfinder, pathmaster): ")
+        #self.team_size = input("Team size? (1-8)")
+        #self.runs = input("Number of runs to simulate? ")
         self.contr_pts = 0
         self.purple_chance = 0
         self.pet_chance = 0
@@ -38,7 +38,7 @@ class RewardChest:
                        ("Masori body", 1 / 12),
                        ("Tumeken's Shadow", 1 / 24)]
 
-    def get_chance(self):
+    def get_chance(self, raid_lvl, team_size, path_invoc, wtp_invoc):
         """
         Fetches contribution points, purple and pet chances from OSRS Wiki API
         based on the set raid parameters.
@@ -51,21 +51,24 @@ class RewardChest:
         """
         url = "https://oldschool.runescape.wiki/api.php"
         data = "action=parse&text=%7B%7B%23invoke%3ATombs+of+Amascut+loot%7Cmain" \
-               "%7Craid_level%3D" + self.raid_lvl + \
-               "%7Cteam_size%3D" + self.team_size + \
-               "%7Cpath_invocation%3D" + self.path_invoc + \
-               "%7Cwalk_the_path%3D" + self.wtp_invoc + \
+               "%7Craid_level%3D" + str(raid_lvl) + \
+               "%7Cteam_size%3D" + str(team_size) + \
+               "%7Cpath_invocation%3D" + str(path_invoc) + \
+               "%7Cwalk_the_path%3D" + str(wtp_invoc) + \
                "%7D%7D&prop=text%7Climitreportdata&title=Calculator%3ATombs_of_Amascut_loot&disablelimitreport=true&contentmodel=wikitext&format=json"
         response = requests.post(url, data=data, headers={
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
 
         raw_text = response.json()["parse"]["text"]
         raw_text = str(raw_text)
-
         text_dict = raw_text.split()
-        self.contr_pts = text_dict[10][3:-4]
-        self.purple_chance = float(text_dict[23][3:-5]) / 100
-        self.pet_chance = float(text_dict[32][3:-5]) / 100
+
+        # get chance values from text
+        matching = [t for t in text_dict if "<b>" in t]
+        print("match:" + str(matching))
+        self.contr_pts = matching[0][3:-4]
+        self.purple_chance = float(matching[2][3:-5]) / 100
+        self.pet_chance = float(matching[3][3:-5]) / 100
         self.white_chance = 1 - self.purple_chance
         self.loot = [("White loot", self.float_to_int(self.white_chance)),
                      ("Purple item", self.float_to_int(self.purple_chance))]
@@ -85,7 +88,7 @@ class RewardChest:
 
         return int_number
 
-    def simulate_roll(self):
+    def simulate_roll(self, runs):
         """
         Simulates item rolls from the TOA reward chest.
 
@@ -94,7 +97,7 @@ class RewardChest:
         counter = 0
         choices = []
         purple_choices = []
-        while counter < int(self.runs):
+        while counter < int(runs):
             for item, weight in self.loot:
                 choices.extend([item] * weight)
                 roll = random.choice(choices)
@@ -116,8 +119,8 @@ class RewardChest:
 if __name__ == "__main__":
     #TODO: restore try catch block
     reward_chest_instance = RewardChest()
-    reward_chest_instance.get_chance()
-    reward_chest_instance.simulate_roll()
+    #reward_chest_instance.get_chance()
+    #reward_chest_instance.simulate_roll()
     #try:
     #    reward_chest_instance = RewardChest()
     #    reward_chest_instance.get_chance()
