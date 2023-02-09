@@ -1,9 +1,6 @@
 import random
 import requests
 
-# TODO: add GUI - with images for items
-# TODO: fetch current ge prices, show value of loot
-
 
 class RewardChest:
     """
@@ -19,24 +16,20 @@ class RewardChest:
         """
         RewardChest class constructor to initialize object.
         """
-        #self.raid_lvl = input("Raid level (0-600): ")
-        #self.wtp_invoc = input("Walk The Path? (yes, no): ")
-        #self.path_invoc = input("Path invocations (pathseeker, pathfinder, pathmaster): ")
-        #self.team_size = input("Team size? (1-8)")
-        #self.runs = input("Number of runs to simulate? ")
         self.contr_pts = 0
         self.purple_chance = 0
         self.pet_chance = 0
         self.white_chance = 0
         self.loot = []
+        self.all_purple_loot = []
 
         self.purple_rates = [("Lightbearer", 1 / 3.429),
-                       ("Osmumten's Fang", 1 / 3.429),
-                       ("Elidinis' Ward", 1 / 8),
-                       ("Masori mask", 1 / 12),
-                       ("Masori chaps", 1 / 12),
-                       ("Masori body", 1 / 12),
-                       ("Tumeken's Shadow", 1 / 24)]
+                             ("Osmumten's Fang", 1 / 3.429),
+                             ("Elidinis' Ward", 1 / 8),
+                             ("Masori mask", 1 / 12),
+                             ("Masori chaps", 1 / 12),
+                             ("Masori body", 1 / 12),
+                             ("Tumeken's Shadow", 1 / 24)]
 
     def get_chance(self, raid_lvl, team_size, path_invoc, wtp_invoc):
         """
@@ -96,6 +89,7 @@ class RewardChest:
         """
         counter = 0
         choices = []
+        roll = ""
         purple_choices = []
         while counter < int(runs):
             for item, weight in self.loot:
@@ -106,24 +100,13 @@ class RewardChest:
                     p_weight = self.float_to_int(p_weight)
                     purple_choices.extend([p_item] * p_weight)
                     purple_roll = random.choice(purple_choices)
-                print("Run " + str(counter + 1) + " - " + roll + " - " + purple_roll)
+                self.all_purple_loot.append("Run " + str(
+                    counter + 1) + " - " + roll + " - " + purple_roll)
             else:
                 # TODO: implement white loot calculation
                 # print("Run " + str(counter+1)+ " - " + roll)
                 ""
             counter += 1
+        self.all_purple_loot.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
         return None
-
-
-if __name__ == "__main__":
-    #TODO: restore try catch block
-    reward_chest_instance = RewardChest()
-    #reward_chest_instance.get_chance()
-    #reward_chest_instance.simulate_roll()
-    #try:
-    #    reward_chest_instance = RewardChest()
-    #    reward_chest_instance.get_chance()
-    #    reward_chest_instance.simulate_roll()
-    #except BaseException:
-    #    ""
