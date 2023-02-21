@@ -24,12 +24,12 @@ class RewardChest:
         self.all_purple_loot = []
 
         self.purple_rates = [("Lightbearer", 1 / 3.429),
-                             ("Osmumten's Fang", 1 / 3.429),
-                             ("Elidinis' Ward", 1 / 8),
+                             ("Osmumten's fang", 1 / 3.429),
+                             ("Elidinis' ward", 1 / 8),
                              ("Masori mask", 1 / 12),
                              ("Masori chaps", 1 / 12),
                              ("Masori body", 1 / 12),
-                             ("Tumeken's Shadow", 1 / 24)]
+                             ("Tumeken's shadow", 1 / 24)]
 
     def get_chance(self, raid_lvl, team_size, path_invoc, wtp_invoc):
         """
@@ -91,6 +91,7 @@ class RewardChest:
         choices = []
         roll = ""
         purple_choices = []
+        self.all_runs_loot = []
         while counter < int(runs):
             for item, weight in self.loot:
                 choices.extend([item] * weight)
@@ -100,13 +101,14 @@ class RewardChest:
                     p_weight = self.float_to_int(p_weight)
                     purple_choices.extend([p_item] * p_weight)
                     purple_roll = random.choice(purple_choices)
-                self.all_purple_loot.append("Run " + str(
+                self.all_purple_loot.append(purple_roll)
+                self.all_runs_loot.append("Run " + str(
                     counter + 1) + " - " + roll + " - " + purple_roll)
             else:
                 # TODO: implement white loot calculation
                 # print("Run " + str(counter+1)+ " - " + roll)
                 ""
             counter += 1
-        self.all_purple_loot.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        self.all_runs_loot.append("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
         return None
