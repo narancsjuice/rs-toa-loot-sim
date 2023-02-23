@@ -51,8 +51,11 @@ class RsLootSimApp:
         self.rpanel_counter = 0
         self.lpanel_counter = 0
 
-        # displayed item images
+        # displayed item images and labels
         self.uniques_images = {}
+        self.purple_img_x = 8
+        self.purple_img_y = 8
+        self.count_labels = {}
 
         # setting up UI elements
         # raid_lvl
@@ -131,6 +134,8 @@ class RsLootSimApp:
         """
         self.window.destroy()
 
+        return None
+
     def reset(self):
         """
 
@@ -152,6 +157,10 @@ class RsLootSimApp:
         self.runs_breakdown.runs_listbox.delete(0, tk.END)
         self.runs_breakdown.rpanel.destroy()
         self.loot_tab.lpanel.destroy()
+        self.purple_img_x = 5
+        self.purple_img_y = 5
+
+        return None
 
     def open_runs_breakdown(self):
         """
@@ -252,13 +261,25 @@ class RsLootSimApp:
         :return:
         """
         uniques = set(reward_chest_instance.all_purple_loot)
+        purple_count = {}
+
         for unique in uniques:
+            purple_count[unique] = reward_chest_instance.all_purple_loot.count(unique)
             if unique not in self.uniques_images.keys():
                 img = tk.PhotoImage(file="static/media/purple_loot_png/" + str(unique) + ".png")
                 img_panel = tk.Label(self.loot_tab.lpanel, image=img)
                 img_panel.photo = img
-                img_panel.pack(side="left")
+                count_label = tk.Label(self.loot_tab.lpanel, text=purple_count[unique], bg='#000', fg='#ff0', bd=0)
+                count_label.place(x=self.purple_img_x + img.width() + 2, y=1)
+                self.count_labels[unique] = count_label
+                if img.height() > 25:
+                    img_panel.place(x=self.purple_img_x, y=self.purple_img_y)
+                else:
+                    img_panel.place(x=self.purple_img_x, y=self.purple_img_y + 5)
+                self.purple_img_x = self.purple_img_x + img.width() + 10
                 self.uniques_images[unique] = img
+            elif unique in self.uniques_images.keys():
+                self.count_labels[unique].config(text=purple_count[unique])
 
         return None
 
