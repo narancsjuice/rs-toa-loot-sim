@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Combobox
-from tkinter.ttk import Style
 from backend import RewardChest
 
 # backend class instance
@@ -35,7 +34,8 @@ class RsLootSimApp:
         self.logo = PhotoImage(
             file='./static/media/game_icon_tombsofamascut.png')
         self.window.iconphoto(False, self.logo)
-        self.runs_window = None
+        self.runs_breakdown = None
+        self.loot_tab = None
 
         # validation
         self.validation = self.window.register(self.callback)
@@ -48,7 +48,14 @@ class RsLootSimApp:
         self.runs_var = tk.IntVar()
 
         # other variables
-        self.panel_counter = 0
+        self.rpanel_counter = 0
+        self.lpanel_counter = 0
+
+        # displayed item images and labels
+        self.uniques_images = {}
+        self.purple_img_x = 8
+        self.purple_img_y = 8
+        self.count_labels = {}
 
         # setting up UI elements
         # raid_lvl
@@ -72,9 +79,8 @@ class RsLootSimApp:
         # runs
         self.runs_label = tk.Label(self.window, text='Runs',
                                    font=('calibre', 10, 'bold'))
-        self.runs_sp = Spinbox(self.window, from_=0, to=1000,
+        self.runs_sp = Spinbox(self.window, from_=1, to=1000,
                                textvariable=self.runs_var)
-        # runs_sp.place(x=80, y=170)
 
         # path invoc
         self.path_invoc_label = tk.Label(self.window, text='Path Invocations',
@@ -85,7 +91,6 @@ class RsLootSimApp:
         self.path_invoc_cb = Combobox(self.window,
                                       values=self.path_invoc_var_data,
                                       textvariable=self.path_invoc_var)
-        # path_invoc_cb.place(x=60, y=150)
 
         # wtp
         self.wtp_label = tk.Label(self.window, text='WTP',
@@ -94,17 +99,15 @@ class RsLootSimApp:
                                             variable=self.wtp_invoc_var)
         self.wtp_invoc_var_cb.place(x=100, y=100)
 
-        # button that will call the configure function
-        self.cfg_btn = tk.Button(self.window, text='Configure',
-                                 command=self.configure)
-
-        # button that will call the simulate function
+        # simulate button
         self.sim_btn = tk.Button(self.window, text='Simulate',
                                  command=self.simulate)
 
-        # button to open right side panel
-        self.opn_btn = tk.Button(self.window, text='>>',
-                                 command=self.open_panel)
+        # reset button
+        self.reset_btn = tk.Button(self.window, text='Reset', command=self.reset)
+
+        # quit button
+        self.quit_btn = tk.Button(self.window, text='Quit', command=self.quit)
 
         # placing fields in grid
         self.raid_lvl_label.grid(row=0, column=0, sticky=W)
@@ -115,26 +118,78 @@ class RsLootSimApp:
         self.path_invoc_cb.grid(row=2, column=1)
         self.wtp_label.grid(row=3, column=0, sticky=W)
         self.wtp_invoc_var_cb.grid(row=3, column=1)
-        self.cfg_btn.grid(row=4, column=1)
         self.runs_label.grid(row=6, column=0)
         self.runs_sp.grid(row=6, column=1)
         self.sim_btn.grid(row=7, column=1)
-        self.opn_btn.grid(row=8, column=2)
+        self.reset_btn.grid(row=8, column=2)
+        self.quit_btn.grid(row=9, column=2)
 
-    def open_panel(self):
+    def disable_event(self):
+        pass
+
+    def quit(self):
+        """
+
+        :return:
+        """
+        self.window.destroy()
+
+        return None
+
+    def reset(self):
+        """
+
+        :return:
+        """
+        #reward_chest_instance.all_runs_loot.clear()
+        reward_chest_instance.all_purple_loot.clear()
+        self.uniques_images.clear()
+        self.raid_lvl_entry.delete(0, END)
+        self.raid_lvl_entry.insert(0, 0)
+        self.team_size_entry.delete(0, END)
+        self.team_size_entry.insert(0,0)
+        self.path_invoc_cb.set("None")
+        self.wtp_invoc_var_cb.deselect()
+        self.runs_sp.delete(0, END)
+        self.runs_sp.insert(0, 1)
+        self.rpanel_counter = 0
+        self.lpanel_counter = 0
+        self.runs_breakdown.runs_listbox.delete(0, tk.END)
+        self.runs_breakdown.rpanel.destroy()
+        self.loot_tab.lpanel.destroy()
+        self.purple_img_x = 5
+        self.purple_img_y = 5
+
+        return None
+
+    def open_runs_breakdown(self):
         """
         Opens the side panel for the runs breakdown.
         :return:
         """
-        if self.panel_counter == 0:
-            self.runs_window = SidePanel()
-            self.panel_counter += 1
-            self.opn_btn['text'] = '<<'
+        if self.rpanel_counter == 0:
+            self.runs_breakdown = RunsBreakdown()
+            self.rpanel_counter += 1
         else:
             # TODO: if exited with red X, button and counter is not updated
-            self.runs_window.panel.destroy()
-            self.panel_counter -= 1
-            self.opn_btn['text'] = '>>'
+            self.runs_breakdown.rpanel.destroy()
+            self.rpanel_counter -= 1
+
+        return None
+
+    def open_loot_tab(self):
+        """
+        Opens the side panel for the loot tab.
+        :return:
+        """
+        if self.lpanel_counter == 0:
+            self.loot_tab = LootTab()
+            self.lpanel_counter += 1
+        else:
+            # TODO: if exited with red X, button and counter is not updated
+            self.loot_tab.lpanel.destroy()
+            self.lpanel_counter -= 1
+            self.uniques_images.clear()
 
         return None
 
@@ -150,22 +205,21 @@ class RsLootSimApp:
         else:
             return False
 
-    def configure(self):
+    def simulate(self):
         """
-        This method configures the raid settings.
-        :return: None
+        This method simulates the reward chest based on the config and
+        the number of runs.
+        :return:
         """
         raid_lvl = self.raid_lvl_var.get()
-        if raid_lvl < 0 or raid_lvl > 600:
+        if raid_lvl < 0 or raid_lvl > 600 or raid_lvl == "":
             messagebox.showerror("User Input Error",
                                  "Raid level can only be a number between 0 and 600!")
-            # self.open_popup()
 
         team_size = self.team_size_var.get()
-        if team_size < 1 or team_size > 8:
+        if team_size < 1 or team_size > 8 or team_size == "":
             messagebox.showerror("User Input Error",
-                                 "Team size can onyl be a number between 1 and 8!")
-            # self.open_popup()
+                                 "Team size can only be a number between 1 and 8!")
 
         wtp_invoc = self.wtp_invoc_var.get()
         path_invoc = self.path_invoc_var.get()
@@ -175,46 +229,93 @@ class RsLootSimApp:
         else:
             wtp_invoc = "no"
 
-        print("Raid lvl : " + str(raid_lvl))
-        print("Team size : " + str(team_size))
-        print("Wtp? : " + str(wtp_invoc))
-        print("Path invoc : " + str(path_invoc))
-
         chance = reward_chest_instance.get_chance(raid_lvl, team_size,
                                                   path_invoc, wtp_invoc)
 
-    def simulate(self):
-        """
-        This method simulates the reward chest based on the config and
-        the number of runs.
-        :return:
-        """
         runs = self.runs_var.get()
+        if runs < 1 or runs == "":
+            messagebox.showerror("User Input Error",
+                                 "To roll the reward chest, you have to clear the raid at least once!")
+
         reward_chest_instance.simulate_roll(runs)
 
-        # clear listbox before next simulation
-        self.runs_window.runs_listbox.delete(0, tk.END)
+        if self.lpanel_counter == 0:
+            self.open_loot_tab()
 
-        for index, purple_item in enumerate(reward_chest_instance.all_purple_loot):
-            if self.panel_counter == 1:
-                self.runs_window.runs_listbox.insert(index, purple_item)
+        if self.rpanel_counter == 0:
+            self.open_runs_breakdown()
+
+        if self.rpanel_counter == 1:
+            for index, purple_item in enumerate(reward_chest_instance.all_runs_loot):
+                # clear listbox before next simulation
+                #    self.runs_breakdown.runs_listbox.delete(0, tk.END)
+                self.runs_breakdown.runs_listbox.insert(index, purple_item)
+
+        self.display_img()
 
         return None
 
-class SidePanel(RsLootSimApp):
+    def display_img(self):
+        """
+
+        :return:
+        """
+        uniques = set(reward_chest_instance.all_purple_loot)
+        purple_count = {}
+
+        for unique in uniques:
+            purple_count[unique] = reward_chest_instance.all_purple_loot.count(unique)
+            if unique not in self.uniques_images.keys():
+                img = tk.PhotoImage(file="static/media/purple_loot_png/" + str(unique) + ".png")
+                img_panel = tk.Label(self.loot_tab.lpanel, image=img)
+                img_panel.photo = img
+                count_label = tk.Label(self.loot_tab.lpanel, text=purple_count[unique], bg='#000', fg='#ff0', bd=0)
+                count_label.place(x=self.purple_img_x + img.width() + 2, y=1)
+                self.count_labels[unique] = count_label
+                if img.height() > 25:
+                    img_panel.place(x=self.purple_img_x, y=self.purple_img_y)
+                else:
+                    img_panel.place(x=self.purple_img_x, y=self.purple_img_y + 5)
+                self.purple_img_x = self.purple_img_x + img.width() + 10
+                self.uniques_images[unique] = img
+            elif unique in self.uniques_images.keys():
+                self.count_labels[unique].config(text=purple_count[unique])
+
+        return None
+
+
+class LootTab(RsLootSimApp):
+    """
+    This class contains the images and amount of the received loot.
+    """
+    def __init__(self):
+        self.lpanel = Toplevel(loot_sim_app.window)
+        self.lpanel.title("Loot Tab")
+        self.lpanel.iconphoto(False, loot_sim_app.logo)
+        x = loot_sim_app.window.winfo_x()
+        y = loot_sim_app.window.winfo_y()
+        self.lpanel.geometry("300x200")
+        self.lpanel.geometry("+%d+%d" % (x + 400, y))
+        self.lpanel.protocol("WM_DELETE_WINDOW", self.disable_event)
+
+
+class RunsBreakdown(RsLootSimApp):
     """
     This class contains the side panel that shows the runs breakdown.
     """
     def __init__(self):
-        self.panel = Toplevel(loot_sim_app.window)
-        self.panel.title("Run Breakdown")
-        self.panel.iconphoto(False, loot_sim_app.logo)
+        self.rpanel = Toplevel(loot_sim_app.window)
+        self.rpanel.title("Runs Breakdown")
+        self.rpanel.iconphoto(False, loot_sim_app.logo)
+        #x = loot_sim_app.loot_tab.lpanel.winfo_x()
+        #y = loot_sim_app.loot_tab.lpanel.winfo_y()
         x = loot_sim_app.window.winfo_x()
         y = loot_sim_app.window.winfo_y()
-        self.panel.geometry("500x700")
-        self.panel.geometry("+%d+%d" % (x + 400, y))
-        self.runs_listbox = Listbox(self.panel, width='70', height='40')
+        self.rpanel.geometry("500x700")
+        self.rpanel.geometry("+%d+%d" % (x + 700, y))
+        self.runs_listbox = Listbox(self.rpanel, width='70', height='40')
         self.runs_listbox.grid(row=0, column=0)
+        self.rpanel.protocol("WM_DELETE_WINDOW", self.disable_event)
 
 
 if __name__ == "__main__":
