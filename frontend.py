@@ -266,7 +266,7 @@ class RsLootSimApp:
         for unique in uniques:
             purple_count[unique] = reward_chest_instance.all_purple_loot.count(unique)
             if unique not in self.uniques_images.keys():
-                img = tk.PhotoImage(file="static/media/purple_loot_png/" + str(unique) + ".png")
+                img = tk.PhotoImage(file=f"static/media/purple_loot_png/{unique}.png")
                 img_panel = tk.Label(self.loot_tab.lpanel, image=img)
                 img_panel.photo = img
                 count_label = tk.Label(self.loot_tab.lpanel, text=purple_count[unique], bg='#000', fg='#ff0', bd=0)

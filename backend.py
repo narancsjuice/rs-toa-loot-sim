@@ -43,12 +43,12 @@ class RewardChest:
         :return: None
         """
         url = "https://oldschool.runescape.wiki/api.php"
-        data = "action=parse&text=%7B%7B%23invoke%3ATombs+of+Amascut+loot%7Cmain" \
-               "%7Craid_level%3D" + str(raid_lvl) + \
-               "%7Cteam_size%3D" + str(team_size) + \
-               "%7Cpath_invocation%3D" + str(path_invoc) + \
-               "%7Cwalk_the_path%3D" + str(wtp_invoc) + \
-               "%7D%7D&prop=text%7Climitreportdata&title=Calculator%3ATombs_of_Amascut_loot&disablelimitreport=true&contentmodel=wikitext&format=json"
+        data = f"action=parse&text=%7B%7B%23invoke%3ATombs+of+Amascut+loot%7Cmain" \
+                f"%7Craid_level%3D{raid_lvl}" \
+                f"%7Cteam_size%3D{team_size}" \
+                f"%7Cpath_invocation%3D{path_invoc}" \
+                f"%7Cwalk_the_path%3D{wtp_invoc}" \
+                f"%7D%7D&prop=text%7Climitreportdata&title=Calculator%3ATombs_of_Amascut_loot&disablelimitreport=true&contentmodel=wikitext&format=json"
         response = requests.post(url, data=data, headers={
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
 
@@ -102,8 +102,7 @@ class RewardChest:
                     purple_choices.extend([p_item] * p_weight)
                     purple_roll = random.choice(purple_choices)
                 self.all_purple_loot.append(purple_roll)
-                self.all_runs_loot.append("Run " + str(
-                    counter + 1) + " - " + roll + " - " + purple_roll)
+                self.all_runs_loot.append(f"Run {counter + 1} - {roll} - {purple_roll}")
             else:
                 # TODO: implement white loot calculation
                 # print("Run " + str(counter+1)+ " - " + roll)
